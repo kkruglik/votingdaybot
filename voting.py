@@ -7,7 +7,7 @@ from time import sleep
 from telebot.apihelper import answer_callback_query
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
 import logging
-import os
+# import os
 
 token = '1626437067:AAF1LOEOpgJjv58io8XZFN2IO6K9J-TNtXo'
 bot = telebot.TeleBot(token)
