@@ -1,1 +1,1 @@
-web: python3 voting.py
+worker: python main.py $PORT
