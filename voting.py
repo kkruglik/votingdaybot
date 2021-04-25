@@ -4,6 +4,10 @@ from telebot import types
 from collections import defaultdict
 from random import randint, random
 from time import sleep
+from telebot.apihelper import answer_callback_query
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
+import logging
+import os
 
 token = '1626437067:AAF1LOEOpgJjv58io8XZFN2IO6K9J-TNtXo'
 bot = telebot.TeleBot(token)
@@ -11,18 +15,22 @@ level = {}
 inventories = {}
 life = {}
 
-def check_message(message):
-    try:
-        int(message.text)
-        return True
-    except ValueError:
-        return False
-    else: 
-        return False
+PORT = int(os.environ.get('PORT', 5000))
 
-@bot.message_handler(commands=["start"])
-def start_game(message):
-    user = message.chat.id
+# Enable logging
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+
+logger = logging.getLogger(__name__)
+
+def error(update, context):
+    """Log Errors caused by Updates."""
+    logger.warning('Update "%s" caused error "%s"', update, context.error)
+
+
+# @bot.message_handler(commands=["start"])
+def start_game(update, contex):
+    user = update.message.chat.id
     life[user] = 10
     level[user] = 0
     inventories[user] = []
@@ -31,19 +39,16 @@ def start_game(message):
     bot.send_message(user, f"Привет! Это игра День выборов.\n\nТы единственный честный наблюдатель на участке. Твоя задача: не допустить фальсификаций и получить итоговый протокол.\n\nУ тебя есть *{life[user]} жизней*. За каждую пропущенное нарушение у тебя будут отниматься жизни. Если жизней не останется, то фальсификаторы выиграют.", parse_mode='Markdown')
     process_game(user, level[user], inventories[user], life[user])
 
-@bot.message_handler(func=check_message)
-def choose_level(message):
-    user = message.chat.id
-    life[user] = 10
-    level[user] = int(message.text)
-    inventories[user] = []
-    process_game(user, level[user], inventories[user], life[user])
 
-@bot.callback_query_handler(func=lambda call: True)
-def user_answer(call):
-    user = call.message.chat.id
+#@bot.callback_query_handler(func=lambda call: True)
+def user_answer(call, contex):
+    print('_________________')
+    print(call)
+    print(contex)
+    print('_________________')
+    user = call.callback_query.message.chat.id
     #bot.delete_message(call.message.chat.id, call.message.message_id)
-    process_answer(user, call.data)
+    process_answer(user, call.callback_query.data)
     
 def process_game(user, level, inventory, life):
     kb = types.InlineKeyboardMarkup()
@@ -426,4 +431,32 @@ def process_answer(user, answer):
 
     process_game(user, level[user], inventories[user], life[user])
 
-bot.polling()
+def main():
+    """Start the bot."""
+    # Create the Updater and pass it your bot's token.
+    # Make sure to set use_context=True to use the new context based callbacks
+    # Post version 12 this will no longer be necessary
+    updater = Updater(token, use_context=True)
+
+    # Get the dispatcher to register handlers
+    dp = updater.dispatcher
+
+    # on different commands - answer in Telegram
+    dp.add_handler(CommandHandler("start", start_game))
+    dp.add_handler(CallbackQueryHandler(user_answer))
+    #dp.add_handler(CommandHandler("help", help))
+    # log all errors
+    dp.add_error_handler(error)
+
+    # Start the Bot
+    updater.start_webhook(listen="0.0.0.0", port=int(PORT), url_path=token)
+    updater.bot.setWebhook('https://voting-day-bot.herokuapp.com/' + token)
+
+    # Run the bot until you press Ctrl-C or the process receives SIGINT,
+    # SIGTERM or SIGABRT. This should be used most of the time, since
+    #updater.start_polling()
+    updater.idle()
+
+if __name__ == '__main__':
+    main()
+
