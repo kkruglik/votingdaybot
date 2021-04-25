@@ -1,1 +1,1 @@
-worker: python voting.py $PORT
+worker: python main.py $PORT
