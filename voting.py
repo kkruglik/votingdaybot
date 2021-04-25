@@ -15,7 +15,7 @@ level = {}
 inventories = {}
 life = {}
 
-PORT = int(os.environ.get('PORT', 5000))
+# PORT = int(os.environ.get('PORT', 5000))
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -449,12 +449,12 @@ def main():
     dp.add_error_handler(error)
 
     # Start the Bot
-    updater.start_webhook(listen="0.0.0.0", port=int(PORT), url_path=token)
-    updater.bot.setWebhook('https://voting-day-bot.herokuapp.com/' + token)
+    # updater.start_webhook(listen="0.0.0.0", port=int(PORT), url_path=token)
+    # updater.bot.setWebhook('https://voting-day-bot.herokuapp.com/' + token)
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
-    # updater.start_polling()
+    updater.start_polling()
     updater.idle()
 
 if __name__ == '__main__':
