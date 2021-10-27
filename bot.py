@@ -9,7 +9,7 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Callb
 import logging
 # import os
 
-token = '1626437067:AAF1LOEOpgJjv58io8XZFN2IO6K9J-TNtXo'
+token = ' '
 bot = telebot.TeleBot(token)
 level = {}
 inventories = {}
